@@ -6,11 +6,12 @@ typedef struct ball {
 
 typedef struct paddle {
     int x,y;
-    int w,h;
+    int width, height;
 } paddle_t;
 
 typedef struct game_state {
     int score[2];
-    ball_t* game_ball;
-    paddle_t* l_paddle, r_paddle;
+    ball_t game_ball;
+    paddle_t l_paddle;
+    paddle_t r_paddle;
 } game_state_t;
