@@ -1,5 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include "SDL.h"
 
@@ -7,6 +13,13 @@
 
 #define SCREEN_WIDTH 640 //default screen width
 #define SCREEN_HEIGHT 480 //default screen height
+#define FRAME_RATE 100 //default FPS
+#define BUFF_SIZE 200
+#define PORT_NO 2300
+
+void refresh_screen(game_state_t* game_state) {
+
+}
 
 void game_init(game_state_t* game_state) {
 
@@ -38,19 +51,33 @@ void game_init(game_state_t* game_state) {
 
 int main(int argc, char* argv[]) {
 
-    if(SDL_Init(SDL_INIT_VIDEO) < 0){
-        printf("SDL initialization failed: %s", SDL_GetError());
+    // Check if args are valid
+    if (argc < 2) {
+        printf("No arguments supplied, please check documentation on how to start\n");
+        exit(1);
+    }
+    int port_no = PORT_NO;
+    if (argc > 2) {
+        port_no = atoi(argv[2]);
+        if (port_no > 65535 || port_no < 1023) {
+            printf("Invalid port number argument supplied\n");
+            exit(1);
+        }
+    }
+
+    // Initiate SDL, print error message and exit if init fails
+    if(SDL_Init(SDL_INIT_EVERYTHING) < 0){
+        printf("SDL initialization failed: %s\n", SDL_GetError());
         exit(1);
     }
 
+    // Set default game state in game_state struct
     game_state_t game_state;
+    game_state.is_host = 0;
     game_init(&game_state);
 
-    printf("L_Paddle position is %d, %d", game_state.l_paddle.x, game_state.l_paddle.y);
-    printf("R_Paddle position is %d, %d", game_state.r_paddle.x, game_state.r_paddle.y);
-
+    // Game window
     SDL_Window* window;
-
     window = SDL_CreateWindow("NET PONG", 
         0, 
         0, 
@@ -58,9 +85,17 @@ int main(int argc, char* argv[]) {
         SCREEN_HEIGHT, 
         SDL_WINDOW_SHOWN);
 
+    // Determining host/client and establishing connection
+    if (strcmp(argv[1], "HOST") == 0) {
+        game_state.is_host = 1;
+    }
+
+    // Event loop
     SDL_Event e;
+    int tpf = 1000 / FRAME_RATE; // ticks per frame
     int run = 1;
     while (run) {
+        int start = SDL_GetTicks();
         while (SDL_PollEvent(&e)){
             if (e.type == SDL_QUIT){
                 run = 0;
@@ -72,10 +107,14 @@ int main(int argc, char* argv[]) {
                 run = 0;
             }
         }
+        int elapsed = SDL_GetTicks() - start;
+        if (elapsed < tpf) {
+            SDL_Delay(tpf - elapsed);
+        }
     }
 
+    // Destroy window and quit SDL
     SDL_DestroyWindow(window);
-
     SDL_Quit();
 
     return 0;

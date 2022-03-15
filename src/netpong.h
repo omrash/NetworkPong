@@ -14,4 +14,6 @@ typedef struct game_state {
     ball_t game_ball;
     paddle_t l_paddle;
     paddle_t r_paddle;
+    int is_host;
+    int client_connected;
 } game_state_t;
