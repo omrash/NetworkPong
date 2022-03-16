@@ -13,7 +13,7 @@
 
 #define SCREEN_WIDTH 640 //default screen width
 #define SCREEN_HEIGHT 480 //default screen height
-#define FRAME_RATE 100 //default FPS
+#define TIMESTEP 15 //timestep in ms used to calculate tickrate
 #define BUFF_SIZE 200
 #define PORT_NO 2300
 
@@ -85,14 +85,27 @@ int main(int argc, char* argv[]) {
         SCREEN_HEIGHT, 
         SDL_WINDOW_SHOWN);
 
+    // Getting address information for later use
+    int sockfd;
+    struct sockaddr_in host_addr;
+    char buffer[BUFF_SIZE];
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        printf("Socket creation failed\n");
+        exit(1);
+    }
+
     // Determining host/client and establishing connection
     if (strcmp(argv[1], "HOST") == 0) {
         game_state.is_host = 1;
+        stuct sockaddr_in client_addr;
     }
-
+    else {
+    
+    }
+    
     // Event loop
     SDL_Event e;
-    int tpf = 1000 / FRAME_RATE; // ticks per frame
+    int step = TIMESTEP;
     int run = 1;
     while (run) {
         int start = SDL_GetTicks();
@@ -108,8 +121,8 @@ int main(int argc, char* argv[]) {
             }
         }
         int elapsed = SDL_GetTicks() - start;
-        if (elapsed < tpf) {
-            SDL_Delay(tpf - elapsed);
+        if (elapsed < step) {
+            SDL_Delay(step - elapsed);
         }
     }
 
